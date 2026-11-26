@@ -1,12 +1,18 @@
 import { createClient } from "@supabase/supabase-js";
 import fs from "fs";
 
+function cleanSecret(val, name) {
+  let s = val.trim();
+  if (s.startsWith(`${name}=`)) s = s.slice(name.length + 1).trim();
+  return s.replace(/^["']|["']$/g, "").trim();
+}
+
 function loadEnvValue(name) {
-  if (process.env[name]) return process.env[name].trim();
+  if (process.env[name]) return cleanSecret(process.env[name], name);
   if (fs.existsSync(".env")) {
     const env = fs.readFileSync(".env", "utf8");
     const match = env.match(new RegExp(`^${name}=["']?([^"'\\r\\n]+)`, "m"));
-    if (match?.[1]) return match[1].trim();
+    if (match?.[1]) return cleanSecret(match[1], name);
   }
   return "";
 }
